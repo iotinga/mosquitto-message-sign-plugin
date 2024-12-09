@@ -127,7 +127,8 @@ static int callback_message(int event, void *event_data, void *userdata) {
   }
 
   cbor_item_t *ingestion_time_key = cbor_build_string("INGESTION_TIME");
-  cbor_item_t *ingestion_time_value = cbor_build_uint64(tv.tv_usec / 1000u);
+  cbor_item_t *ingestion_time_value =
+      cbor_build_uint64(tv.tv_sec * 1000 + tv.tv_usec / 1000);
   struct cbor_pair ingestion_time_pair = {.key = ingestion_time_key,
                                           .value = ingestion_time_value};
 
