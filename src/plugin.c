@@ -99,6 +99,8 @@ static void load_configuration(plugin_config *config,
 
 static int callback_message(int event, void *event_data, void *userdata) {
   UNUSED(event);
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
 
   plugin_config *config = (plugin_config *)userdata;
   struct mosquitto_evt_message *ed = (struct mosquitto_evt_message *)event_data;
@@ -118,8 +120,27 @@ static int callback_message(int event, void *event_data, void *userdata) {
     return -1;
   }
 
+  if (!cbor_map_is_indefinite(cbor_map)) {
+    mosquitto_log_printf(MOSQ_LOG_ERR, "CBOR map is not indefinite");
+    cbor_decref(&cbor_map);
+    return -1;
+  }
+
+  cbor_item_t *ingestion_time_key = cbor_build_string("INGESTION_TIME");
+  cbor_item_t *ingestion_time_value = cbor_build_uint64(tv.tv_usec / 1000u);
+  struct cbor_pair ingestion_time_pair = {.key = ingestion_time_key,
+                                          .value = ingestion_time_value};
+
+  if (!cbor_map_add(cbor_map, ingestion_time_pair)) {
+    mosquitto_log_printf(MOSQ_LOG_ERR, "Failed to add INGESTION TIME");
+    cbor_decref(&cbor_map);
+    cbor_decref(&ingestion_time_key);
+    cbor_decref(&ingestion_time_value);
+    return -1;
+  }
+
   error_code error = utils_make_signed_cbor_message(
-      cbor_map, config->ca_private_key, "SIGN_TOKEN");
+      cbor_map, config->ca_private_key, "VERIFICATION_TOKEN");
 
   if (error != SUCCESS) {
     mosquitto_log_printf(MOSQ_LOG_ERR, "Failed to make CBOR signed message %d",
