@@ -3,6 +3,10 @@
 #include <sodium.h>
 #include <string.h>
 #include <time.h>
+#include "mosquitto.h"
+#include "mosquitto_broker.h"
+#include "mosquitto_plugin.h"
+#include "mqtt_protocol.h"
 
 #define IS_NULL(x) ((x) == NULL)
 
@@ -38,6 +42,16 @@ error_code utils_make_signed_cbor_message(cbor_item_t *cbor_map,
     return ERROR_UNKNOWN;
   }
 
+  mosquitto_log_printf(
+      MOSQ_LOG_DEBUG, "Serialized CBOR map size: %zu", serialized_size);
+  mosquitto_log_printf(
+      MOSQ_LOG_DEBUG, "Serialized CBOR map: %s",
+      (char *)serialized_map); 
+  for (int i=0; i<serialized_size; i++) {
+    mosquitto_log_printf(MOSQ_LOG_DEBUG, "serialized_map[%d] = %02X", i, (unsigned char)serialized_map[i]);
+  }
+  
+  
   // Create a CBOR byte string for the signature
   signature_item = cbor_build_bytestring(signature, crypto_sign_BYTES);
 
