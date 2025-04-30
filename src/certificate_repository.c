@@ -11,7 +11,9 @@ static const char *QUERY_CREATE_TABLE =
                 entity      text                                    not null, \
                 create_time timestamp with time zone                not null, \
                 public_key  text                                    not null  \
-            );";
+            ); \
+    SELECT create_hypertable('entity_certificates', by_range('create_time'), if_not_exists := true); \ 
+    ";
 
 static const char *QUERY_INSERT_CERTIFICATE =
     "INSERT INTO \"entity_certificates\" (entity, create_time, public_key) "
