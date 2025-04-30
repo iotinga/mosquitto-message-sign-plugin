@@ -49,7 +49,7 @@ certificate_repository *certificate_repository_new(const char *connection) {
 
   ExecStatusType status = PQresultStatus(query_create_table_result);
 
-  if (status != PGRES_COMMAND_OK) {
+  if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK) {
     mosquitto_log_printf(MOSQ_LOG_ERR, "Failed to create tables, reason: %s",
                          PQerrorMessage(repo->connection));
     PQclear(query_create_table_result);
